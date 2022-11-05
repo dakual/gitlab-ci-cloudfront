@@ -1,18 +1,36 @@
 variables:
   S3_BUCKET: kruta.link
+  CDN_DISTRIBUTION_ID: "##########"
 
 stages:
+#  - build
   - deploy
 
-s3-deploy:
+# build:
+#   stage: build
+#   image: node:8.11.3
+#   script:
+#       - npm install
+#       - npm run build
+#   artifacts:
+#     paths:
+#       - dist/
+#     expire_in: 20 mins
+#   only:
+#     - main
+#   tags:
+#     - dev
+
+deploy:
   stage: deploy
   image: 
     name: amazon/aws-cli
     entrypoint: [""]
   script:
-    - aws --version
-    - aws s3 rm s3://$S3_BUCKET --recursive
-    - aws s3 cp app s3://$S3_BUCKET --recursive
+    # - aws s3 rm s3://$S3_BUCKET --recursive
+    # - aws s3 cp app s3://$S3_BUCKET --recursive --include "*"
+    - aws s3 sync app/. s3://$S3_BUCKET --delete
+    - aws cloudfront create-invalidation --distribution-id $CDN_DISTRIBUTION_ID --paths "/*"
   when: manual
   only:
     - main
